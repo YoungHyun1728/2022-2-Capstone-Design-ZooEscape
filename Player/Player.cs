@@ -4,14 +4,15 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    //ÀÌµ¿¼Óµµ, Á¡ÇÁ·Â Á¶Àı
+    //ì´ë™ì†ë„, ì í”„ë ¥ ì¡°ì ˆ
     public float walkForce = 8f;
     public float jumpForce = 50f;
 
     public int jumpCount = 0;
     public bool isGround = false;
+    public bool isSliding = false;
 
-    public int hp = 5;
+    public static int hp = 5;
     public static bool isDead = false;
 
     Rigidbody2D p_rigid2D;
@@ -23,7 +24,7 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        // Ä³¸¯ÅÍ ÀÌµ¿
+        // ìºë¦­í„° ì´ë™
         float inputX = Input.GetAxis("Horizontal");
         float fallSpeed = p_rigid2D.velocity.y;
         float speed = walkForce * inputX;
@@ -33,50 +34,62 @@ public class Player : MonoBehaviour
         p_rigid2D.velocity = p_velocity;
 
         
-        //Ä³¸¯ÅÍ ÀÌµ¿ ¾Ö´Ï¸ŞÀÌ¼Ç+ (ÁÂ¿ìÀÌµ¿ ±¸ºĞ)
-
+        //ìºë¦­í„° ì´ë™ ì• ë‹ˆë©”ì´ì…˜+ (ì¢Œìš°ì´ë™ êµ¬ë¶„)
         
-        //Á¡ÇÁ
-        if (Input.GetKeyDown(KeyCode.UpArrow) && jumpCount < 2)
+        //ì í”„
+        if (Input.GetKeyDown(KeyCode.Z) && jumpCount < 2)
         {
             jumpCount++;
             p_rigid2D.velocity = new Vector2(0, 0);
             p_rigid2D.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
-            // Á¡ÇÁ¾Ö´Ï¸ŞÀÌ¼Ç+
-        }
-
-        //½½¶óÀÌµù(ÁÂ)
-        if (Input.GetKey(KeyCode.LeftArrow) && Input.GetKeyDown(KeyCode.Z) && isGround == true)
-        {
-            StartCoroutine(Invincible()); // ¹«Àû
-            StartCoroutine(Sliding());    // ½½¶óÀÌµù
-            //½½¶óÀÌµù ¾Ö´Ï¸ŞÀÌ¼Ç+
-        }
-
-        //½½¶óÀÌµù(¿ì)
-        if (Input.GetKey(KeyCode.RightArrow) && Input.GetKeyDown(KeyCode.Z) && isGround == true)
-        {
-            StartCoroutine(Invincible()); // ¹«Àû
-            StartCoroutine(Sliding());    // ½½¶óÀÌµù
-            //½½¶óÀÌµù ¾Ö´Ï¸ŞÀÌ¼Ç+
+            // ì í”„ì• ë‹ˆë©”ì´ì…˜+
         }
         
-        //°ÔÀÓ¿À¹ö+ (½Ã°£Á¦ÇÑ)
+        //ë°œíŒ ì•„ë˜ë¡œ ë‚´ë ¤ê°€ëŠ” ì í”„?
+
+        //ìŠ¬ë¼ì´ë”©(ì¢Œ)
+        if (Input.GetKey(KeyCode.LeftArrow) && Input.GetKeyDown(KeyCode.X) && isSliding == true)
+        {
+            StartCoroutine(S_Invincible()); // ë¬´ì 
+            StartCoroutine(Sliding());    // ìŠ¬ë¼ì´ë”©
+            StartCoroutine(IsSliding());  // ìŠ¬ë¼ì´ë”© ì¿¨íƒ€ì„
+            //ìŠ¬ë¼ì´ë”© ì• ë‹ˆë©”ì´ì…˜+
+        }
+
+        //ìŠ¬ë¼ì´ë”©(ìš°)
+        if (Input.GetKey(KeyCode.RightArrow) && Input.GetKeyDown(KeyCode.X) && isSliding == true)
+        {
+            StartCoroutine(S_Invincible()); // ë¬´ì 
+            StartCoroutine(Sliding());    // ìŠ¬ë¼ì´ë”©
+            StartCoroutine(IsSliding());  // ìŠ¬ë¼ì´ë”© ì¿¨íƒ€ì„
+            //ìŠ¬ë¼ì´ë”© ì• ë‹ˆë©”ì´ì…˜+
+        }
+        
+        //ê²Œì„ì˜¤ë²„(ì²´ë ¥)
         if(hp == 0)
         {
             isDead = true;
-            // °ÔÀÓ¿À¹ö ¾Ö´Ï¸ŞÀÌ¼Ç+
+            // ê²Œì„ì˜¤ë²„ ì• ë‹ˆë©”ì´ì…˜+
+            // ì”¬ì „í™˜
         }
-        
-        //½½¶óÀÌµù Áß ¹«Àû
-        IEnumerator Invincible()
+
+        //ìŠ¬ë¼ì´ë”© ì¿¨íƒ€ì„ 2ì´ˆ
+        IEnumerator IsSliding()
         {
-            gameObject.layer = 10;
-            yield return new WaitForSeconds(0.5f);
-            gameObject.layer = 0;
+            isSliding = false;
+            yield return new WaitForSeconds(2.0f);
+            isSliding = true;
+        }
+
+        //ìŠ¬ë¼ì´ë”© ì¤‘ ë¬´ì 
+        IEnumerator S_Invincible()
+        {
+            gameObject.layer = 7;
+            yield return new WaitForSeconds(1.0f);
+            gameObject.layer = 3;
         }
         
-        //½½¶óÀÌµù
+        //ìŠ¬ë¼ì´ë”©
         IEnumerator Sliding()
         {
             walkForce = walkForce * 3;
@@ -88,24 +101,36 @@ public class Player : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        //2´ÜÁ¡ÇÁ È°¼ºÈ­
-        if (collision.gameObject.tag == "Floor")
+        //2ë‹¨ì í”„ í™œì„±í™”, ìŠ¬ë¼ì´ë”© í™œì„±í™”
+        if (collision.gameObject.tag == "Floor" || collision.gameObject.tag == "Platform")
         {
+            isSliding = true;
             isGround = true;
             jumpCount = 0;
         }
 
+        //í”¼ê²© ì²˜ë¦¬
         if (collision.gameObject.tag == "enemy")
         {
-            hp--;
-            // ÇÇ°İ ¾Ö´Ï¸ŞÀÌ¼Ç+
+            StartCoroutine(H_Invincible());
+            Debug.Log("ë§ìŒ");
+            // í”¼ê²© ì• ë‹ˆë©”ì´ì…˜+
+        }
+
+        //í”¼ê²© í›„ ë¬´ì 
+        IEnumerator H_Invincible()
+        {
+            Player.hp--;
+            gameObject.layer = 7;
+            yield return new WaitForSeconds(5.0f);
+            gameObject.layer = 3;
         }
     }
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        //Á¡ÇÁ ºÒ°¡
-        if (collision.gameObject.tag == "Floor")
+        //ì í”„ ë¶ˆê°€
+        if (collision.gameObject.tag == "Floor" || collision.gameObject.tag == "Platform")
         {
             isGround = false;
         }
