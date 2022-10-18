@@ -62,11 +62,10 @@ public class Player : MonoBehaviour
             p_rigid2D.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);   
         }
 
-        //점프 애니메이션
-        if(p_velocity.y != 0)
+        //점프 애니메이션 --
+        if(isGround == false)
             anim.SetBool("isJump", true);
-
-        if (isGround == true)
+        else
             anim.SetBool("isJump", false);
 
         //슬라이딩(좌)
@@ -136,12 +135,15 @@ public class Player : MonoBehaviour
             Debug.Log("맞음");
         }
 
-        //피격 후 무적
+        //피격 후 무적 + 깜빡임
         IEnumerator H_Invincible()
         {
             Player.hp--;
             gameObject.layer = 7;
+            spriteRenderer.color = new Color(1, 1, 1, 0.4f);
+            p_rigid2D.AddForce(new Vector2(-8, 1) * 7, ForceMode2D.Impulse);
             yield return new WaitForSeconds(3.0f);
+            spriteRenderer.color = new Color(1, 1, 1, 1);
             gameObject.layer = 3;
         }
     }
@@ -160,4 +162,3 @@ public class Player : MonoBehaviour
         return hp;
     }
 }
-
