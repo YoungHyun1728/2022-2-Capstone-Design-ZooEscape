@@ -12,14 +12,18 @@ public class Player : MonoBehaviour
     public bool isGround = false;
     public bool isSliding = false;
 
-    public static int hp = 5;
+    private static int hp = 5;
     public static bool isDead = false;
 
     Rigidbody2D p_rigid2D;
+    SpriteRenderer spriteRenderer;
+    Animator anim;
 
     void Start()
     {
-        p_rigid2D = GetComponent<Rigidbody2D>();        
+        p_rigid2D = GetComponent<Rigidbody2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        anim = GetComponent<Animator>();
     }
 
     void Update()
@@ -33,19 +37,37 @@ public class Player : MonoBehaviour
         p_velocity.y = fallSpeed;
         p_rigid2D.velocity = p_velocity;
 
-        
-        //캐릭터 이동 애니메이션+ (좌우이동 구분)
-        
+
+        //좌우 플립, 걷는 애니메이션
+        if (Input.GetKey(KeyCode.LeftArrow))
+        {
+            anim.SetBool("isWalk", true);
+            spriteRenderer.flipX = true;
+        }
+        if (Input.GetKey(KeyCode.RightArrow))
+        {
+            anim.SetBool("isWalk", true);
+            spriteRenderer.flipX = false;
+        }
+
+        // 멈춤
+        if(p_velocity.x == 0)
+            anim.SetBool("isWalk", false);
+
         //점프
         if (Input.GetKeyDown(KeyCode.Z) && jumpCount < 2)
         {
             jumpCount++;
             p_rigid2D.velocity = new Vector2(0, 0);
-            p_rigid2D.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
-            // 점프애니메이션+
+            p_rigid2D.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);   
         }
-        
-        //발판 아래로 내려가는 점프?
+
+        //점프 애니메이션
+        if(p_velocity.y != 0)
+            anim.SetBool("isJump", true);
+
+        if (isGround == true)
+            anim.SetBool("isJump", false);
 
         //슬라이딩(좌)
         if (Input.GetKey(KeyCode.LeftArrow) && Input.GetKeyDown(KeyCode.X) && isSliding == true)
@@ -53,7 +75,6 @@ public class Player : MonoBehaviour
             StartCoroutine(S_Invincible()); // 무적
             StartCoroutine(Sliding());    // 슬라이딩
             StartCoroutine(IsSliding());  // 슬라이딩 쿨타임
-            //슬라이딩 애니메이션+
         }
 
         //슬라이딩(우)
@@ -62,15 +83,12 @@ public class Player : MonoBehaviour
             StartCoroutine(S_Invincible()); // 무적
             StartCoroutine(Sliding());    // 슬라이딩
             StartCoroutine(IsSliding());  // 슬라이딩 쿨타임
-            //슬라이딩 애니메이션+
         }
         
         //게임오버(체력)
         if(hp == 0)
         {
             isDead = true;
-            // 게임오버 애니메이션+
-            // 씬전환
         }
 
         //슬라이딩 쿨타임 2초
@@ -84,16 +102,18 @@ public class Player : MonoBehaviour
         //슬라이딩 중 무적
         IEnumerator S_Invincible()
         {
-            gameObject.layer = 7;
-            yield return new WaitForSeconds(1.0f);
+            gameObject.layer = 7;            
+            yield return new WaitForSeconds(1.0f);            
             gameObject.layer = 3;
         }
         
         //슬라이딩
         IEnumerator Sliding()
         {
+            anim.SetBool("isSlide", true);
             walkForce = walkForce * 3;
             yield return new WaitForSeconds(0.15f);
+            anim.SetBool("isSlide", false);
             walkForce = walkForce / 3;
         }
 
@@ -114,7 +134,6 @@ public class Player : MonoBehaviour
         {
             StartCoroutine(H_Invincible());
             Debug.Log("맞음");
-            // 피격 애니메이션+
         }
 
         //피격 후 무적
@@ -122,7 +141,7 @@ public class Player : MonoBehaviour
         {
             Player.hp--;
             gameObject.layer = 7;
-            yield return new WaitForSeconds(5.0f);
+            yield return new WaitForSeconds(3.0f);
             gameObject.layer = 3;
         }
     }
@@ -135,4 +154,10 @@ public class Player : MonoBehaviour
             isGround = false;
         }
     }
+
+    public int getHP()
+    {
+        return hp;
+    }
 }
+
